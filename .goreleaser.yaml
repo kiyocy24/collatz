@@ -5,4 +5,4 @@ builds:
       - windows
       - darwin
 archives:
-  format: zip      
+  - format: zip      
