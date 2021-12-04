@@ -1,0 +1,7 @@
+project_name: collatz
+builds:
+  - goos:
+      - linux
+      - windows
+      - darwin
+      
