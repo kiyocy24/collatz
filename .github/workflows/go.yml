@@ -14,19 +14,19 @@ jobs:
       - name: Setup
       - uses: actions/checkout@v2
       - uses: actions/setup-go@v2
-      with:
-        go-version: 1.17
+        with:
+          go-version: 1.17
       - run: go version
 
       - name: Cache
       - uses: actions/cache@v2
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
+        with:
+          path: |
+            ~/.cache/go-build
+            ~/go/pkg/mod
+          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          restore-keys: |
+            ${{ runner.os }}-go-
 
   build:
     needs: setup
@@ -34,12 +34,12 @@ jobs:
     steps:
       - name: Build
       - uses: actions/checkout@v2
-        run: go build -v ./...
+      - run: go build -v ./...
 
   test:
     needs: setup
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v2
       - name: Test
-        run: go test -v ./...
+      - uses: actions/checkout@v2
+      - run: go test -v ./...
