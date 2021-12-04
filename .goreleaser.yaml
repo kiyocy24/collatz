@@ -4,5 +4,5 @@ builds:
       - linux
       - windows
       - darwin
-archive:
+archives:
   format: zip      
