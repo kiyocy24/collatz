@@ -41,41 +41,56 @@ func Collatz(n uint64, opts ...option) error {
 	for _, opt := range opts {
 		opt(op)
 	}
-
-	var result [][]uint64
 	if op.end == 0 {
-		result = [][]uint64{collatz.Collatz(n)}
-	} else {
-		result = collatz.Collatzs(n, op.end)
+		op.end = n
 	}
 
-	var resultStr [][]string
-	for _, v := range result {
-		resultStr = append(resultStr, helper.SliceUint64ToString(v))
-	}
-
-	if op.output == "" {
-		for _, v := range resultStr {
-			fmt.Println(strings.Join(v, ","))
-		}
-	} else {
-		f, err := os.Create(op.output)
+	var f *os.File
+	if op.output != "" {
+		f, err := os.OpenFile(op.output, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
 		if err != nil {
 			return err
 		}
 		defer f.Close()
+	}
 
-		w := csv.NewWriter(f)
-		err = w.WriteAll(resultStr)
-		if err != nil {
-			return err
+	for start := n; start <= op.end; start += Chunk {
+		end := start + Chunk
+		if end > op.end {
+			end = op.end
 		}
-		w.Flush()
+		result := collatz.Collatzs(start, end)
+		var resultStr [][]string
+		for _, v := range result {
+			resultStr = append(resultStr, helper.SliceUint64ToString(v))
+		}
 
-		err = w.Error()
-		if err != nil {
-			return err
+		if op.output == "" {
+			for _, v := range resultStr {
+				fmt.Println(strings.Join(v, ","))
+			}
+		} else {
+			err := output(f, resultStr)
+			if err != nil {
+				return err
+			}
 		}
+	}
+
+	return nil
+}
+
+func output(f *os.File, records [][]string) error {
+	w := csv.NewWriter(f)
+	err := w.WriteAll(records)
+	if err != nil {
+		return err
+	}
+	w.Flush()
+
+	err = w.Error()
+	if err != nil {
+		return err
 	}
 
 	return nil
