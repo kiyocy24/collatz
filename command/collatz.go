@@ -5,6 +5,7 @@ import (
 	"collatz/helper"
 	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -41,41 +42,58 @@ func Collatz(n uint64, opts ...option) error {
 	for _, opt := range opts {
 		opt(op)
 	}
-
-	var result [][]uint64
 	if op.end == 0 {
-		result = [][]uint64{collatz.Collatz(n)}
-	} else {
-		result = collatz.Collatzs(n, op.end)
+		op.end = n
 	}
 
-	var resultStr [][]string
-	for _, v := range result {
-		resultStr = append(resultStr, helper.SliceUint64ToString(v))
+	var writer *helper.Writer
+	var err error
+	if op.output != "" {
+		writer, err = helper.NewWriter(op.output)
+		if err != nil {
+			return err
+		}
+		defer writer.Close()
 	}
 
-	if op.output == "" {
-		for _, v := range resultStr {
-			fmt.Println(strings.Join(v, ","))
+	for start := n; start <= op.end; start += Chunk {
+		end := start + Chunk
+		if end > op.end {
+			end = op.end
 		}
-	} else {
-		f, err := os.Create(op.output)
-		if err != nil {
-			return err
+		result := collatz.Collatzs(start, end)
+		var resultStr [][]string
+		for _, v := range result {
+			resultStr = append(resultStr, helper.SliceUint64ToString(v))
 		}
-		defer f.Close()
 
-		w := csv.NewWriter(f)
-		err = w.WriteAll(resultStr)
-		if err != nil {
-			return err
+		if writer != nil {
+			err = writer.Write(resultStr)
+			if err != nil {
+				return err
+			}
+			log.Printf("%8d / %8d", start+Chunk-1, op.end)
+		} else {
+			for _, v := range resultStr {
+				fmt.Println(strings.Join(v, ","))
+			}
 		}
-		w.Flush()
+	}
 
-		err = w.Error()
-		if err != nil {
-			return err
-		}
+	return nil
+}
+
+func output(f *os.File, records [][]string) error {
+	w := csv.NewWriter(f)
+	err := w.WriteAll(records)
+	if err != nil {
+		return err
+	}
+	w.Flush()
+
+	err = w.Error()
+	if err != nil {
+		return err
 	}
 
 	return nil
