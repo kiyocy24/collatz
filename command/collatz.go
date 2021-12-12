@@ -5,6 +5,7 @@ import (
 	"collatz/helper"
 	"encoding/csv"
 	"fmt"
+	"log"
 	"os"
 	"strings"
 )
@@ -45,13 +46,14 @@ func Collatz(n uint64, opts ...option) error {
 		op.end = n
 	}
 
-	var f *os.File
+	var writer *helper.Writer
+	var err error
 	if op.output != "" {
-		f, err := os.OpenFile(op.output, os.O_CREATE|os.O_APPEND|os.O_RDWR, 0666)
+		writer, err = helper.NewWriter(op.output)
 		if err != nil {
 			return err
 		}
-		defer f.Close()
+		defer writer.Close()
 	}
 
 	for start := n; start <= op.end; start += Chunk {
@@ -65,14 +67,15 @@ func Collatz(n uint64, opts ...option) error {
 			resultStr = append(resultStr, helper.SliceUint64ToString(v))
 		}
 
-		if op.output == "" {
-			for _, v := range resultStr {
-				fmt.Println(strings.Join(v, ","))
-			}
-		} else {
-			err := output(f, resultStr)
+		if writer != nil {
+			err = writer.Write(resultStr)
 			if err != nil {
 				return err
+			}
+			log.Printf("%8d / %8d", start+Chunk-1, op.end)
+		} else {
+			for _, v := range resultStr {
+				fmt.Println(strings.Join(v, ","))
 			}
 		}
 	}
