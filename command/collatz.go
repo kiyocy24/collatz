@@ -55,7 +55,7 @@ func Collatz(n uint64, opts ...option) error {
 	}
 
 	for start := n; start <= op.end; start += Chunk {
-		end := start + Chunk
+		end := start + Chunk - 1
 		if end > op.end {
 			end = op.end
 		}
@@ -70,7 +70,7 @@ func Collatz(n uint64, opts ...option) error {
 			if err != nil {
 				return err
 			}
-			log.Printf("%8d / %8d", start+Chunk-1, op.end)
+			log.Printf("%d / %d", end, op.end)
 		} else {
 			for _, v := range resultStr {
 				fmt.Println(strings.Join(v, ","))
