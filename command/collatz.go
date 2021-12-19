@@ -3,10 +3,8 @@ package command
 import (
 	"collatz/collatz"
 	"collatz/helper"
-	"encoding/csv"
 	"fmt"
 	"log"
-	"os"
 	"strings"
 )
 
@@ -78,22 +76,6 @@ func Collatz(n uint64, opts ...option) error {
 				fmt.Println(strings.Join(v, ","))
 			}
 		}
-	}
-
-	return nil
-}
-
-func output(f *os.File, records [][]string) error {
-	w := csv.NewWriter(f)
-	err := w.WriteAll(records)
-	if err != nil {
-		return err
-	}
-	w.Flush()
-
-	err = w.Error()
-	if err != nil {
-		return err
 	}
 
 	return nil
